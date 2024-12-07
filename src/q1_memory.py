@@ -18,7 +18,7 @@ def q1_memory(file_path: str) -> List[Tuple[datetime.date, str, int]]:
                 # Verificamos si tenemos fecha y username válidos
                 if tweet_date and user:
                     # Convertir la fecha a formato datetime.date
-                    tweet_date = datetime.strptime(tweet_date, '%Y-%m-%d').date()
+                    tweet_date = datetime.strptime(tweet_date, '%Y-%m-%dT%H:%M:%S%z').date()
 
                     # Actualizar el contador de tweets por fecha y usuario
                     tweet_count_by_date_user[tweet_date][user] += 1
