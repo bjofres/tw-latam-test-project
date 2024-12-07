@@ -1,25 +1,29 @@
 import pandas as pd
-from typing import List, Tuple
+from collections import defaultdict
 from datetime import datetime
+from typing import List, Tuple
 
 def q1_time(file_path: str) -> List[Tuple[datetime.date, str, int]]:
-    # lee archivo usando pandas
-    df = pd.read_json(file_path, lines=True)
-    
-    # asegura que la columna date esté en formato datetime
-    df['date'] = pd.to_datetime(df['date']).dt.date
-    
-    # extrae username de la columna user
-    df['username'] = df['user'].apply(lambda x: x.get('username') if isinstance(x, dict) else None)
-    
-    # agrupar por fecha y username y contar los tweets
-    df_agrupado = df.groupby(['date', 'username']).size().reset_index(name='tweet_count')
-    
-    # seleccionamos los usuarios más frecuentes por fecha
-    result = df_agrupado.groupby('date').apply(lambda x: x.loc[x['tweet_count'].idxmax()]).reset_index(drop=True)
-    
-    # convertir el resultado en una lista de tuplas
-    result = result[['date', 'username', 'tweet_count']]
-    result = [tuple(x) for x in result.values]
-    
+    tweet_count_by_date_user = defaultdict(lambda: defaultdict(int))
+
+    # Usamos chunksize para leer el archivo en trozos más pequeños
+    chunksize = 10000  # Por ejemplo, leemos 10,000 líneas a la vez
+    for chunk in pd.read_json(file_path, lines=True, chunksize=chunksize):
+        # Convertir la columna 'date' a datetime
+        chunk['date'] = pd.to_datetime(chunk['date']).dt.date
+
+        # Extraer 'username'
+        chunk['username'] = chunk['user'].apply(lambda x: x.get('username') if isinstance(x, dict) else None)
+
+        # Agrupar por fecha y usuario y actualizar el contador
+        grouped = chunk.groupby(['date', 'username']).size().reset_index(name='tweet_count')
+        for _, row in grouped.iterrows():
+            tweet_count_by_date_user[row['date']][row['username']] += row['tweet_count']
+
+    # Preparar el resultado con el usuario más frecuente por fecha
+    result = []
+    for date, users in tweet_count_by_date_user.items():
+        most_frequent_user = max(users, key=users.get)
+        result.append((date, most_frequent_user, users[most_frequent_user]))
+
     return result
