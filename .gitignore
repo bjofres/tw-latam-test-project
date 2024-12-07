@@ -1,3 +1,5 @@
 venv/
 src/__pycache__
 .ipnb_checkpoints/
+twwets_extracted/
+tweets.json.zip
