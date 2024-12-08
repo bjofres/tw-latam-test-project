@@ -1,5 +1,7 @@
+# line_profiler y memory_profiler
 import time
 from typing import Callable
+
 
 def time_it(func: Callable) -> Callable:
     """
